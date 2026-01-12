@@ -1,4 +1,4 @@
 fastapi
-uvicorn
-pydantic
-gpt4all
+uvicorn[standard]
+transformers
+torch
