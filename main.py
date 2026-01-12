@@ -1,36 +1,42 @@
+# main.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from gpt4all import GPT4All
-import os
-import requests
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
 # -------------------------
-# Descargar modelo si no existe
+# Inicializar FastAPI
 # -------------------------
-MODEL_PATH = "gpt4all-lora-quantized.bin"
-MODEL_URL = "https://gpt4all.io/models/gpt4all-lora-quantized.bin"
-
-if not os.path.exists(MODEL_PATH):
-    print("Descargando modelo...")
-    r = requests.get(MODEL_URL, stream=True)
-    with open(MODEL_PATH, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            f.write(chunk)
-    print("Modelo descargado")
+app = FastAPI(title="Lightweight GPT API")
 
 # -------------------------
-# Inicializar FastAPI y modelo
-# -------------------------
-app = FastAPI()
-model = GPT4All(MODEL_PATH)
-
-# -------------------------
-# Request y endpoint
+# Endpoint de request
 # -------------------------
 class Request(BaseModel):
     prompt: str
+    max_length: int = 100  # límite de tokens generados
 
+# -------------------------
+# Cargar modelo y tokenizer
+# -------------------------
+# Esto puede tardar unos segundos al iniciar
+print("Cargando modelo EleutherAI/gpt-neo-125M...")
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125m")
+model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125m")
+generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+print("Modelo cargado.")
+
+# -------------------------
+# Endpoint POST /chat
+# -------------------------
 @app.post("/chat")
 def chat(req: Request):
-    response = model.generate(req.prompt)
-    return {"completion": response}
+    output = generator(
+        req.prompt,
+        max_length=req.max_length,
+        do_sample=True,
+        temperature=0.7,
+        top_p=0.9,
+        num_return_sequences=1,
+    )
+    # El pipeline devuelve una lista de diccionarios
+    return {"completion": output[0]["generated_text"]}
