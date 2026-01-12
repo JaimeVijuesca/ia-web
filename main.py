@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from transformers import pipeline
 
 # -------------------------
 # Inicializar FastAPI
@@ -16,13 +16,10 @@ class Request(BaseModel):
     max_length: int = 100  # límite de tokens generados
 
 # -------------------------
-# Cargar modelo y tokenizer
+# Cargar modelo ligero distilgpt2
 # -------------------------
-# Esto puede tardar unos segundos al iniciar
-print("Cargando modelo EleutherAI/gpt-neo-125M...")
-tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125m")
-model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125m")
-generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+print("Cargando modelo distilgpt2...")
+generator = pipeline("text-generation", model="distilgpt2")
 print("Modelo cargado.")
 
 # -------------------------
