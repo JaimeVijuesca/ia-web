@@ -1,5 +1,6 @@
 # main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # <--- importar
 from pydantic import BaseModel
 from transformers import pipeline
 
@@ -9,11 +10,27 @@ from transformers import pipeline
 app = FastAPI(title="Lightweight GPT API")
 
 # -------------------------
+# Configurar CORS
+# -------------------------
+origins = [
+    "*",  # permite cualquier origen, para pruebas
+    # "http://localhost:8000",  # podrías restringirlo a tu frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -------------------------
 # Endpoint de request
 # -------------------------
 class Request(BaseModel):
     prompt: str
-    max_length: int = 100  # límite de tokens generados
+    max_length: int = 100
 
 # -------------------------
 # Cargar modelo ligero distilgpt2
@@ -35,5 +52,4 @@ def chat(req: Request):
         top_p=0.9,
         num_return_sequences=1,
     )
-    # El pipeline devuelve una lista de diccionarios
     return {"completion": output[0]["generated_text"]}
