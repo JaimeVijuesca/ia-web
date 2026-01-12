@@ -18,8 +18,8 @@ class Request(BaseModel):
 # -------------------------
 # Cargar modelo ligero distilgpt2
 # -------------------------
-print("Cargando modelo distilgpt2...")
-generator = pipeline("text-generation", model="distilgpt2")
+print("Cargando modelo...")
+generator = pipeline("text-generation", model="sshleifer/tiny-gpt2")
 print("Modelo cargado.")
 
 # -------------------------
